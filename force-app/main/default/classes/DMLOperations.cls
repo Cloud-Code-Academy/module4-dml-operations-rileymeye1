@@ -33,7 +33,10 @@ public with sharing class DMLOperations {
         // Create a new Account instance
         Account acc = new Account(Name = 'Test Account');
         // Insert the Account into the database
-        insert acc;
+        if (Account.SObjectType.getDescribe().isCreateable() &&
+            Schema.SObjectType.Account.fields.Name.isCreateable()){
+                insert acc;
+            }
         // Return the Id of the newly created Account
         return acc.Id;
     }
@@ -46,8 +49,13 @@ public with sharing class DMLOperations {
      */
     public static void createAccount(String name, String industry) {
         // Create a new Account and set the fields inline
-
+        Account newAccount = new Account(Name = name, Industry = industry);
         // Insert the Account
+        if (Account.SObjectType.getDescribe().isCreateable() &&
+            Schema.SObjectType.Account.fields.Name.isCreateable() &&
+            Schema.SObjectType.Account.fields.Industry.isCreateable()){
+                insert newAccount;
+            }
     }
 
     
