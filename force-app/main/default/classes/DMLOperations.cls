@@ -69,14 +69,18 @@ public with sharing class DMLOperations {
      */
     public static Id insertNewContact(Id accountId) {
         // Create a new Contact instance
-
-        // Set some fields on the Contact
-        // Set the AccountId field to the given accountId
-
+        Contact newContact = new Contact(FirstName = 'Riley', LastName = 'Meyer', AccountId = accountId);
         // Insert the Contact into the database
-
+        if (Contact.SObjectType.getDescribe().isCreateable() &&
+            Schema.SObjectType.Contact.fields.FirstName.isCreateable() &&
+            Schema.SObjectType.Contact.fields.LastName.isCreateable() &&
+            Schema.SObjectType.Contact.fields.AccountId.isCreateable()) {
+                insert newContact;
+            } else {
+                return null;
+            }
         // Return the Id of the newly created Contact
-        return null;
+        return newContact.Id;
     }
 
     /**
