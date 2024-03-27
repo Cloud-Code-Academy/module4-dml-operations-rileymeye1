@@ -36,6 +36,8 @@ public with sharing class DMLOperations {
         if (Account.SObjectType.getDescribe().isCreateable() &&
             Schema.SObjectType.Account.fields.Name.isCreateable()){
                 insert acc;
+            } else {
+                return null;
             }
         // Return the Id of the newly created Account
         return acc.Id;
