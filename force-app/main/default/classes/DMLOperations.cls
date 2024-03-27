@@ -32,14 +32,16 @@ public with sharing class DMLOperations {
     public static Id insertNewAccount() {
         // Create a new Account instance
         Account acc = new Account(Name = 'Test Account');
-        // Insert the Account into the database
+        // Check CRUD prior to DML operation
         if (Account.SObjectType.getDescribe().isCreateable() &&
             Schema.SObjectType.Account.fields.Name.isCreateable()){
+                // Insert the new account into the database if the User has access
                 insert acc;
             } else {
+                // return null if the User does not have access and do not insert the account
                 return null;
             }
-        // Return the Id of the newly created Account
+        // Return the Id of the newly created Account if the User has access to create the account
         return acc.Id;
     }
 
@@ -52,10 +54,11 @@ public with sharing class DMLOperations {
     public static void createAccount(String name, String industry) {
         // Create a new Account and set the fields inline
         Account newAccount = new Account(Name = name, Industry = industry);
-        // Insert the Account
+        // Check CRUD prior to DML operation
         if (Account.SObjectType.getDescribe().isCreateable() &&
             Schema.SObjectType.Account.fields.Name.isCreateable() &&
             Schema.SObjectType.Account.fields.Industry.isCreateable()){
+                // If the user has Create access to the Account object then insert the account into the database
                 insert newAccount;
             }
     }
@@ -70,16 +73,18 @@ public with sharing class DMLOperations {
     public static Id insertNewContact(Id accountId) {
         // Create a new Contact instance
         Contact newContact = new Contact(FirstName = 'Riley', LastName = 'Meyer', AccountId = accountId);
-        // Insert the Contact into the database
+        // Check CRUD prior to DML
         if (Contact.SObjectType.getDescribe().isCreateable() &&
             Schema.SObjectType.Contact.fields.FirstName.isCreateable() &&
             Schema.SObjectType.Contact.fields.LastName.isCreateable() &&
             Schema.SObjectType.Contact.fields.AccountId.isCreateable()) {
+                // If the User has Create access on the Contact then insert the Contact to the database
                 insert newContact;
             } else {
+                // If the User does not have access to create Contacts then return null
                 return null;
             }
-        // Return the Id of the newly created Contact
+        // Return the Id of the newly created Contact if the User has access to create Contacts
         return newContact.Id;
     }
 
@@ -92,11 +97,15 @@ public with sharing class DMLOperations {
      */
     public static void updateContactLastName(Id contactId, String newLastName) {
         // Retrieve the Contact from the database
-        // [SELECT Id FROM Contact WHERE Id = :contactId]
-
-        // Update the Contact's last name
-
-        // Update the Contact in the database
+        Contact contactToUpdate = [SELECT Id FROM Contact WHERE Id = :contactId];
+        // Check CRUD prior to DML action
+        if (Contact.SObjectType.getDescribe().isUpdateable() &&
+            Schema.SObjectType.Contact.fields.LastName.isUpdateable()){
+                // Update the Contact's LastName with the provided newLastName
+                contactToUpdate.LastName = newLastName;
+                // Update the contact in the database
+                update contactToUpdate;
+            }
     }
 
     /**
