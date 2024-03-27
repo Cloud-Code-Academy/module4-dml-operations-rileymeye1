@@ -138,9 +138,17 @@ public with sharing class DMLOperations {
      */
     public static void updateAccountFields(Id accountId, String newName, String newIndustry) {
         // Query the account
-        // [SELECT Id FROM Account WHERE Id = :accountId]
-
-        // Update the Account with the given Id with the new name and industry
+        Account accToUpdate = [SELECT Id FROM Account WHERE Id = :accountId];
+        // Check User CRUD prior to DML operation
+        if (Account.SObjectType.getDescribe().isUpdateable() &&
+            Schema.SObjectType.Account.fields.Name.isUpdateable() &&
+            Schema.SObjectType.Account.fields.Industry.isUpdateable()){
+                // Upate the Account's Name and Industry with the provided values
+                accToUpdate.Name = newName;
+                accToUpdate.Industry = newIndustry;
+                // Update the Account in the database
+                update accToUpdate;
+            }
     }
 
 
