@@ -117,11 +117,15 @@ public with sharing class DMLOperations {
      */
     public static void updateOpportunityStage(Id oppId, String newStage) {
         // Retrieve the Opportunity from the database
-        // [SELECT Id FROM Opportunity WHERE Id = :oppId]
-
-        // Update the Opportunity's stage
-
-        // Update the Opportunity in the database
+        Opportunity oppToUpdate = [SELECT Id FROM Opportunity WHERE Id = :oppId];
+        // Check CRUD prior to DML action
+        if (Opportunity.SObjectType.getDescribe().isUpdateable() &&
+            Schema.SObjectType.Opportunity.fields.StageName.isUpdateable()){
+                // Update the Opp's Stage with the provided newStage
+                oppToUpdate.StageName = newStage;
+                // Update the Opp in the database
+                update oppToUpdate;
+            }
     }
 
     /**
