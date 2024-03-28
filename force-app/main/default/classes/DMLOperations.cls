@@ -191,6 +191,7 @@ public with sharing class DMLOperations {
         Opportunity newOpp;
         // Variable to hold the Account when found or created
         Account acc;
+        // Check if the account exists by Name
         List<Account> accs = [SELECT Id, Name FROM Account WHERE Name = :accountName];
         // Check if List is empty or NULL then create a new Account.
         if (accs.isEmpty()) {
@@ -200,25 +201,26 @@ public with sharing class DMLOperations {
             insert newAccount;
             // Set Account acc equal to the newly created account
             acc = newAccount;
-            // Store the acc Id
-            Id accId = acc.Id;
-            // Check if any Opportunities were created with the new Account
-            List<Opportunity> createdOpps = [SELECT Id, Name, AccountId FROM Opportunity WHERE AccountId = :accId];
-            // Check if List is Not Empty
-            if (!createdOpps.isEmpty()) {
-                // delete any existing Opportunities before creating new ones
-                delete createdOpps;
-            }
         } else {
             // Set Account acc equal to the first Account retrieved in the accs List
             acc = accs[0];
         }
+        // Create a list to store existing opportunities that have the names provided in the oppNames List
+        List<Opportunity> existingOpps = [SELECT Id, Name, AccountId FROM Opportunity WHERE Name IN :oppNames AND AccountId = :acc.Id];
         // Loop through each Opportunity name
         for (String oppName : oppNames) {
-            // Create an Opportunity with the given name and link it to the Account
-            newOpp = new Opportunity(Name = oppName, AccountId = acc.Id, StageName = 'Prospecting', CloseDate = Date.today().addMonths(3));
-            // Add the Opportunity to the list
-            opportunities.add(newOpp);
+            for (Opportunity existingOpp : existingOpps) {
+                 // Check if existingOpp name matches oppName
+                if (existingOpp.Name == oppName) {
+                    existingOpp.AccountId = acc.Id;
+                    opportunities.add(existingOpp);
+            } else {
+                // Create an Opportunity with the given name and link it to the Account
+                newOpp = new Opportunity(Name = oppName, AccountId = acc.Id, StageName = 'Prospecting', CloseDate = Date.today().addMonths(3));
+                // Add the Opportunity to the list
+                opportunities.add(newOpp);
+                }
+            }
         }
         // Check CRUD prior to DML operation
         if (Opportunity.SObjectType.getDescribe().isCreateable() &&
@@ -231,6 +233,7 @@ public with sharing class DMLOperations {
             upsert opportunities;
             }
     }
+
 
     
     /**
