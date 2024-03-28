@@ -166,8 +166,14 @@ public with sharing class DMLOperations {
             opp.CloseDate = Date.today().addMonths(3);
             opp.Amount = 50000;
         }
-        // Upsert the opportunities List so that records are either updated or created
-        upsert opportunities;
+        if (Opportunity.SObjectType.getDescribe().isCreateable() &&
+            Opportunity.SObjectType.getDescribe().isUpdateable() &&
+            Schema.SObjectType.Opportunity.fields.StageName.isUpdateable() &&
+            Schema.SObjectType.Opportunity.fields.CloseDate.isUpdateable() &&
+            Schema.SObjectType.Opportunity.fields.Amount.isUpdateable()) {
+            // Upsert the opportunities List so that records are either updated or created
+                upsert opportunities;
+            }
     }
 
     /**
@@ -179,10 +185,53 @@ public with sharing class DMLOperations {
      * @param oppNames The list of Opportunity names.
      */
     public static void upsertOpportunities(String accountName, List<String> oppNames) {
+        // Create a list to store the opportunities
+        List<Opportunity> opportunities = new List<Opportunity>();
+        // Variable to hold each Opportunity before it is added to the List.
+        Opportunity newOpp;
+        // Variable to hold the Account when found or created
+        Account acc;
+        List<Account> accs = [SELECT Id, Name FROM Account WHERE Name = :accountName];
+        // Check if List is empty or NULL then create a new Account.
+        if (accs.isEmpty()) {
+            // Create a new Account with the accountName
+            Account newAccount = new Account(Name = accountName);
+            // Insert the new account
+            insert newAccount;
+            // Set Account acc equal to the newly created account
+            acc = newAccount;
+            // Store the acc Id
+            Id accId = acc.Id;
+            // Check if any Opportunities were created with the new Account
+            List<Opportunity> createdOpps = [SELECT Id, Name, AccountId FROM Opportunity WHERE AccountId = :accId];
+            // Check if List is Not Empty
+            if (!createdOpps.isEmpty()) {
+                // delete any existing Opportunities before creating new ones
+                delete createdOpps;
+            }
+        } else {
+            // Set Account acc equal to the first Account retrieved in the accs List
+            acc = accs[0];
+        }
         // Loop through each Opportunity name
-            // Create an Opportunity with the given name
+        for (String oppName : oppNames) {
+            // Create an Opportunity with the given name and link it to the Account
+            newOpp = new Opportunity(Name = oppName, AccountId = acc.Id, StageName = 'Prospecting', CloseDate = Date.today().addMonths(3));
             // Add the Opportunity to the list
+            opportunities.add(newOpp);
+        }
+        // Check CRUD prior to DML operation
+        if (Opportunity.SObjectType.getDescribe().isCreateable() &&
+            Opportunity.SObjectType.getDescribe().isUpdateable() &&
+            Schema.SObjectType.Opportunity.fields.Name.isUpdateable() &&
+            Schema.SObjectType.Opportunity.fields.AccountId.isUpdateable() &&
+            Schema.SObjectType.Opportunity.fields.StageName.isUpdateable() &&
+            Schema.SObjectType.Opportunity.fields.CloseDate.isUpdateable()) {
+            // Upsert the list of opportunities
+            upsert opportunities;
+            }
     }
+
     
     /**
      * Question 9
