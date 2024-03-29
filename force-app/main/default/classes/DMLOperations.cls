@@ -117,7 +117,7 @@ public with sharing class DMLOperations {
      */
     public static void updateOpportunityStage(Id oppId, String newStage) {
         // Retrieve the Opportunity from the database
-        Opportunity oppToUpdate = [SELECT Id FROM Opportunity WHERE Id = :oppId];
+        Opportunity oppToUpdate = [SELECT Id FROM Opportunity WHERE Id = :oppId WITH SECURITY_ENFORCED];
         // Check CRUD prior to DML action
         if (Opportunity.SObjectType.getDescribe().isUpdateable() &&
             Schema.SObjectType.Opportunity.fields.StageName.isUpdateable()){
@@ -315,11 +315,27 @@ public with sharing class DMLOperations {
      * @param leadNames The list of Lead names to be inserted.
      */
     public static void insertAndDeleteLeads(List<String> leadNames) {
+        // List to hold my Leads
+        List<Lead> leads = new List<Lead>();
+
         // Loop through each Lead name
+        for (String leadName : leadNames) {
+            // Insert a new lead
+            Lead newLead = new Lead(LastName = leadName, Company = 'Orion');
+            leads.add(newLead);
+        }
 
-        // Insert the Leads
-
-        // Delete the Leads
+        if (Lead.SObjectType.getDescribe().isCreateable() &&
+            Schema.SObjectType.Lead.fields.LastName.isCreateable() &&
+            Schema.SObjectType.Lead.fields.Company.isCreateable()) {
+                // Insert the Leads
+                insert leads;
+            }
+        
+        if (Lead.SObjectType.getDescribe().isDeletable()) {
+            // Delete the Leads
+            delete leads;
+        }
     }
 
 
