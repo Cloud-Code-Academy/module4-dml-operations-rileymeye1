@@ -223,8 +223,7 @@ public with sharing class DMLOperations {
                 opportunities.add(newOpp);
             }
         }
-
-        // Upser the list of opportunities
+        // Upsert the list of opportunities
         upsert opportunities;
     }
 
