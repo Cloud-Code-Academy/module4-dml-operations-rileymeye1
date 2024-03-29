@@ -176,7 +176,7 @@ public with sharing class DMLOperations {
             }
     }
 
-    /**
+/**
      * Question 8
      * Insert or updates opportunities from list of names.
      * Associate the Opportunities with account that has the name accountName.
@@ -185,53 +185,9 @@ public with sharing class DMLOperations {
      * @param oppNames The list of Opportunity names.
      */
     public static void upsertOpportunities(String accountName, List<String> oppNames) {
-        // Create a list to store the opportunities
-        List<Opportunity> opportunities = new List<Opportunity>();
-        // Variable to hold each Opportunity before it is added to the List.
-        Opportunity newOpp;
-        // Variable to hold the Account when found or created
-        Account acc;
-        // Check if the account exists by Name
-        List<Account> accs = [SELECT Id, Name FROM Account WHERE Name = :accountName];
-        // Check if List is empty or NULL then create a new Account.
-        if (accs.isEmpty()) {
-            // Create a new Account with the accountName
-            Account newAccount = new Account(Name = accountName);
-            // Insert the new account
-            insert newAccount;
-            // Set Account acc equal to the newly created account
-            acc = newAccount;
-        } else {
-            // Set Account acc equal to the first Account retrieved in the accs List
-            acc = accs[0];
-        }
-        // Create a list to store existing opportunities that have the names provided in the oppNames List
-        List<Opportunity> existingOpps = [SELECT Id, Name, AccountId FROM Opportunity WHERE Name IN :oppNames AND AccountId = :acc.Id];
         // Loop through each Opportunity name
-        for (String oppName : oppNames) {
-            for (Opportunity existingOpp : existingOpps) {
-                 // Check if existingOpp name matches oppName
-                if (existingOpp.Name == oppName) {
-                    existingOpp.AccountId = acc.Id;
-                    opportunities.add(existingOpp);
-            } else {
-                // Create an Opportunity with the given name and link it to the Account
-                newOpp = new Opportunity(Name = oppName, AccountId = acc.Id, StageName = 'Prospecting', CloseDate = Date.today().addMonths(3));
-                // Add the Opportunity to the list
-                opportunities.add(newOpp);
-                }
-            }
-        }
-        // Check CRUD prior to DML operation
-        if (Opportunity.SObjectType.getDescribe().isCreateable() &&
-            Opportunity.SObjectType.getDescribe().isUpdateable() &&
-            Schema.SObjectType.Opportunity.fields.Name.isUpdateable() &&
-            Schema.SObjectType.Opportunity.fields.AccountId.isUpdateable() &&
-            Schema.SObjectType.Opportunity.fields.StageName.isUpdateable() &&
-            Schema.SObjectType.Opportunity.fields.CloseDate.isUpdateable()) {
-            // Upsert the list of opportunities
-            upsert opportunities;
-            }
+            // Create an Opportunity with the given name
+            // Add the Opportunity to the list
     }
 
 
