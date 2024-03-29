@@ -227,8 +227,6 @@ public with sharing class DMLOperations {
         upsert opportunities;
     }
 
-
-
     
     /**
      * Question 9
@@ -347,7 +345,26 @@ public with sharing class DMLOperations {
      */
     public static void createAndDeleteCases(String accountId, Integer numOfCases) {
         // Insert the cases
+        List<Case> cases = new List<Case>();
 
+        for (Integer i = 0; i < numOfCases + 1; i++) {
+            Case newCase = new Case();
+            newCase.Origin = 'Web';
+            newCase.Status = 'New';
+            newCase.AccountId = accountId;
+            cases.add(newCase);
+        }
+
+        if (Case.SObjectType.getDescribe().isCreateable() &&
+            Schema.SObjectType.Case.fields.Origin.isCreateable() &&
+            Schema.SObjectType.Case.fields.Status.isCreateable() &&
+            Schema.SObjectType.Case.fields.AccountId.isCreateable()) {
+                insert cases;
+            }
+        
         // Delete the cases
+        if (Case.SObjectType.getDescribe().isDeletable()) {
+                delete cases;
+            }
     }
 }
