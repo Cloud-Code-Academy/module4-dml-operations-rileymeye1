@@ -185,10 +185,49 @@ public with sharing class DMLOperations {
      * @param oppNames The list of Opportunity names.
      */
     public static void upsertOpportunities(String accountName, List<String> oppNames) {
-        // Loop through each Opportunity name
-            // Create an Opportunity with the given name
-            // Add the Opportunity to the list
+        // Variable to hold the account
+        Account oppAccount;
+        // Query the Account
+        List<Account> accountsFound = [SELECT Id, Name FROM Account WHERE Name = :accountName];
+        //Check if the Account exists in the accountsFound List if found set the oppAccount to that Account if not found create the Account
+        if (accountsFound.size() > 0) {
+            oppAccount = accountsFound[0];
+        } else {
+            Account newAccount = new Account(Name = accountName);
+            insert newAccount;
+            oppAccount = newAccount;
+        }
+
+        // Query to see if any of the Opportunities already exist
+        List<Opportunity> opportunities = [SELECT Id, Name FROM Opportunity WHERE Name IN :oppNames AND AccountId = :oppAccount.Id];
+        // This loop will create missing Opportunities and associate them with the Account
+        for (String oppName : oppNames) {
+            Boolean found = false;
+            for (Opportunity opp : opportunities) {
+                if (opp.Name.compareTo(oppName) == 0) {
+                    found = true;
+                    break;
+                }
+            }
+            
+            if (found == false) {
+                // Create the Opportunity
+                Opportunity newOpp = new Opportunity(
+                    Name = oppName,
+                    AccountId = oppAccount.Id,
+                    StageName = 'Prospecting',
+                    CloseDate = Date.today().addMonths(3)
+                );
+            
+            	// Add the Opportunity to the list
+                opportunities.add(newOpp);
+            }
+        }
+
+        // Upser the list of opportunities
+        upsert opportunities;
     }
+
 
 
     
